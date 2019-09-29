@@ -1,5 +1,6 @@
 import React, {Component} from 'react';
 import {Container, Spinner, Content, Text} from 'native-base';
+import {ScrollView} from 'react-native';
 import axios from 'axios';
 
 import HeaderComp from './header';
@@ -31,17 +32,34 @@ export default class App extends Component {
     this.fetchAds();
   };
 
+  addMoreProducts = () => {
+    // document.addEventListener('scroll', this.trackScrolling);
+    this.fetchAds();
+    this.setState(
+      {
+        loading: false,
+        loadingMore: false,
+        products: this.state.products.concat(this.state.tempProducts),
+      },
+      () => {
+        this.setState({
+          tempProducts: [],
+        });
+      },
+    );
+  };
+
   fetchProducts = (isTemp = false, forceAdd = false) => {
     const {page, sort} = this.state;
     const apiUrl = `http://localhost:3000/api/products?_page=${page}&_limit=20&_sort=${sort}`;
 
     axios.get(apiUrl).then(res => {
       if (res.data.length === 0) {
-        this.setState({isEnd: true});
-        return;
+        return this.setState({isEnd: true});
+        // return;
         // return document.removeEventListener('scroll', this.trackScrolling);
       }
-      this.setState({page: this.state.page + 1});
+      this.setState({page: this.state.page + 1, isBottom: false});
       const products = res.data;
 
       if (!isTemp) {
@@ -90,12 +108,26 @@ export default class App extends Component {
     );
   };
 
+  isCloseToBottom = ({layoutMeasurement, contentOffset, contentSize}) => {
+    return layoutMeasurement.height + contentOffset.y >= contentSize.height - 1;
+  };
+
   render() {
     const {products, loading, randomNumber, isEnd} = this.state;
     return (
       <Container>
         <HeaderComp />
-        <Content>
+        <Content
+          onScroll={({nativeEvent}) => {
+            if (this.isCloseToBottom(nativeEvent) && !this.state.isBottom) {
+              this.setState({loading: true, isBottom: true}, () => {
+                if (this.state.tempProducts.length === 0) {
+                  return this.fetchProducts(true, true);
+                }
+                this.addMoreProducts();
+              });
+            }
+          }}>
           <AdsComp randomNumber={randomNumber} />
           {products.length > 0 &&
             products.map(product => (
