@@ -16,6 +16,7 @@ import {
 import axios from 'axios';
 
 import HeaderComp from './header';
+import AdsComp from './ads';
 import ItemComp from './item';
 
 export default class App extends Component {
@@ -96,6 +97,7 @@ export default class App extends Component {
       <Container>
         <HeaderComp />
         <Content>
+          <AdsComp randomNumber={randomNumber} />
           {products.length > 0 &&
             products.map(product => (
               <ItemComp key={product.id} product={product} />
