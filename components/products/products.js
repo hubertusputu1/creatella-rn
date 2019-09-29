@@ -55,15 +55,12 @@ export default class App extends Component {
 
     axios.get(apiUrl).then(res => {
       if (res.data.length === 0) {
-        return this.setState({isEnd: true});
-        // return;
-        // return document.removeEventListener('scroll', this.trackScrolling);
+        return this.setState({isEnd: true, loading: false});
       }
       this.setState({page: this.state.page + 1, isBottom: false});
       const products = res.data;
 
       if (!isTemp) {
-        // document.addEventListener('scroll', this.trackScrolling);
         return this.setState({
           products,
           loading: false,
@@ -72,7 +69,6 @@ export default class App extends Component {
         return this.setState({tempProducts: products, loadingMore: true});
       }
 
-      //   document.addEventListener('scroll', this.trackScrolling);
       this.fetchAds();
       return this.setState({
         products: this.state.products.concat(products),
@@ -108,6 +104,11 @@ export default class App extends Component {
     );
   };
 
+  isLoadMore = ({layoutMeasurement, contentOffset, contentSize}) => {
+    const height = contentSize.height / 2;
+    return layoutMeasurement.height + contentOffset.y >= height;
+  };
+
   isCloseToBottom = ({layoutMeasurement, contentOffset, contentSize}) => {
     return layoutMeasurement.height + contentOffset.y >= contentSize.height - 1;
   };
@@ -119,6 +120,11 @@ export default class App extends Component {
         <HeaderComp />
         <Content
           onScroll={({nativeEvent}) => {
+            if (this.isLoadMore(nativeEvent) && !this.state.loadingMore) {
+              this.setState({loadingMore: true}, () => {
+                this.fetchProducts(true);
+              });
+            }
             if (this.isCloseToBottom(nativeEvent) && !this.state.isBottom) {
               this.setState({loading: true, isBottom: true}, () => {
                 if (this.state.tempProducts.length === 0) {
