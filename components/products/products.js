@@ -1,18 +1,5 @@
 import React, {Component} from 'react';
-import {
-  Container,
-  Header,
-  Title,
-  Content,
-  Footer,
-  FooterTab,
-  Button,
-  Left,
-  Right,
-  Body,
-  Icon,
-  Text,
-} from 'native-base';
+import {Container, Spinner, Content, Text} from 'native-base';
 import axios from 'axios';
 
 import HeaderComp from './header';
@@ -91,6 +78,18 @@ export default class App extends Component {
     this.fetchAds();
   };
 
+  renderLoading = () => {
+    return <Spinner color="blue" />;
+  };
+
+  renderEndCatalogue = () => {
+    return (
+      <Text style={{textAlign: 'center', padding: 10}}>
+        ~ End of Catalogue ~
+      </Text>
+    );
+  };
+
   render() {
     const {products, loading, randomNumber, isEnd} = this.state;
     return (
@@ -102,6 +101,8 @@ export default class App extends Component {
             products.map(product => (
               <ItemComp key={product.id} product={product} />
             ))}
+          {loading && this.renderLoading()}
+          {isEnd && this.renderEndCatalogue()}
         </Content>
       </Container>
     );
